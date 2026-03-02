@@ -35,6 +35,12 @@ func assetsHandler() http.HandlerFunc {
 	return http.StripPrefix("/assets/", http.FileServer(http.Dir("web/assets"))).ServeHTTP
 }
 
+func manifestHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "web/manifest.json")
+	}
+}
+
 func dashboardHandler(dockerClient *docker.Client) http.HandlerFunc {
 	tmpl := template.Must(template.ParseFiles("web/templates/dashboard.html"))
 

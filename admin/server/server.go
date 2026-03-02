@@ -53,6 +53,7 @@ func New(config *config.Config) *Server {
 	mux.Get("/dashboard", dashboardHandler(dockerClient))
 	mux.Get("/ping", pingHandler())
 	mux.Get("/assets/*", assetsHandler())
+	mux.Get("/manifest.json", manifestHandler())
 	mux.Post("/containers/{id}/toggle", toggleContainerHandler(dockerClient))
 	mux.Get("/logout", logoutHandler(auth))
 
