@@ -15,8 +15,7 @@ RUN go mod tidy
 RUN go mod download
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -o app ./cmd
+RUN go build -o app ./cmd
 
 # ---------- Runtime Stage ----------
 FROM alpine:latest
