@@ -1,0 +1,41 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#111827" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/assets/icon-192.png" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>Dagens Bilde</title>
+    <style>
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen">
+    <div class="max-w-[480px] mx-auto px-4 pb-24">
+        {{template "content" .}}
+    </div>
+
+    {{if .LoggedIn}}
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
+        <div class="max-w-[480px] mx-auto flex">
+            <a href="/" class="flex-1 flex flex-col items-center py-3 text-xs {{if eq .ActiveTab "home"}}text-gray-900 font-semibold{{else}}text-gray-400{{end}}">
+                <svg class="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                Dagens
+            </a>
+            <a href="/results" class="flex-1 flex flex-col items-center py-3 text-xs {{if eq .ActiveTab "results"}}text-gray-900 font-semibold{{else}}text-gray-400{{end}}">
+                <svg class="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                Vinnere
+            </a>
+        </div>
+    </nav>
+    {{end}}
+</body>
+</html>
+{{end}}

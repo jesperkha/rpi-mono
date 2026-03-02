@@ -1,0 +1,11 @@
+services:
+    recipes:
+        build: .
+        container_name: recipes
+        ports:
+            - "8080:8080"
+        restart: unless-stopped
+        volumes:
+            - ./data:/app/data
+        env_file:
+            - .env

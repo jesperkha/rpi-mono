@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="no">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="theme-color" content="#111827" />
+        <link rel="manifest" href="/assets/manifest.json" />
+        <link rel="apple-touch-icon" href="/assets/icon-192.png" />
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+        <title>Ny oppskrift</title>
+    </head>
+    <body class="bg-white text-gray-800 antialiased">
+        <main class="mx-auto w-[90%] md:w-[480px] py-16">
+            <div class="flex items-center justify-between">
+                <a
+                    href="/"
+                    class="inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                >
+                    <span>←</span>
+                    <span>Tilbake</span>
+                </a>
+                <button
+                    type="button"
+                    id="delete-btn"
+                    onclick="showDeleteConfirm()"
+                    style="display: none"
+                    class="inline-flex items-center gap-1 rounded-full bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors cursor-pointer"
+                >
+                    Slett
+                </button>
+            </div>
+
+            <h1 id="page-title" class="mt-6 text-4xl font-semibold tracking-tight text-gray-900">Ny oppskrift</h1>
+            <p id="page-desc" class="mt-3 text-lg text-gray-500">Legg til en ny oppskrift.</p>
+
+            <form method="POST" action="/recipe" class="mt-10 space-y-8" id="recipe-form">
+                <input type="hidden" name="password" id="password-field" />
+                <input type="hidden" name="edit" id="edit-field" value="false" />
+
+                <!-- Name -->
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700">Navn</label>
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        required
+                        class="mt-1 w-full rounded-lg bg-gray-50 px-4 py-2.5 text-gray-900 outline-none focus:ring-2 focus:ring-gray-200"
+                    />
+                    <p id="name-error" class="hidden mt-1 text-sm text-red-500">
+                        En oppskrift med dette navnet finnes allerede.
+                    </p>
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700">Beskrivelse</label>
+                    <input
+                        type="text"
+                        id="description"
+                        name="description"
+                        required
+                        class="mt-1 w-full rounded-lg bg-gray-50 px-4 py-2.5 text-gray-900 outline-none focus:ring-2 focus:ring-gray-200"
+                    />
+                </div>
+
+                <!-- Kind -->
+                <div>
+                    <label for="kind" class="block text-sm font-medium text-gray-700">Type</label>
+                    <select
+                        id="kind"
+                        name="kind"
+                        required
+                        class="mt-1 w-full rounded-lg bg-gray-50 px-4 py-2.5 text-gray-900 outline-none focus:ring-2 focus:ring-gray-200 cursor-pointer"
+                    >
+                        <option value="dinner">Middag</option>
+                        <option value="lunch">Lunsj</option>
+                        <option value="breakfast">Frokost</option>
+                        <option value="sauce">Saus</option>
+                        <option value="dessert">Dessert</option>
+                        <option value="cocktail">Cocktail</option>
+                        <option value="snack">Snacks</option>
+                    </select>
+                </div>
+
+                <!-- Cook time -->
+                <div>
+                    <label for="cookTimeMinutes" class="block text-sm font-medium text-gray-700"
+                        >Tilberedningstid (min)</label
+                    >
+                    <input
+                        type="number"
+                        id="cookTimeMinutes"
+                        name="cookTimeMinutes"
+                        min="0"
+                        required
+                        class="mt-1 w-full rounded-lg bg-gray-50 px-4 py-2.5 text-gray-900 outline-none focus:ring-2 focus:ring-gray-200"
+                    />
+                </div>
+
+                <!-- Ingredients -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Ingredienser</label>
+                    <div id="ingredients" class="mt-2 space-y-3">
+                        <div class="space-y-2 rounded-lg bg-gray-50 p-3">
+                            <div class="flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    name="ingredientName"
+                                    placeholder="Ingrediens"
+                                    required
+                                    class="w-full rounded-lg bg-white px-4 py-2.5 text-gray-900 outline-none focus:ring-2 focus:ring-gray-200"
+                                />
+                                <button
+                                    type="button"
+                                    onclick="removeRow(this, 'ingredients')"
+                                    class="text-gray-400 hover:text-gray-700 transition-colors cursor-pointer shrink-0 text-lg leading-none"
+                                >
+                                    ×
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input
+                                    type="number"
+                                    name="ingredientAmount"
+                                    placeholder="Mengde"
+                                    min="0"
+                                    step="any"
+                                    required
+                                    class="w-full rounded-lg bg-white px-4 py-2.5 text-gray-900 outline-none focus:ring-2 focus:ring-gray-200"
+                                />
+                                <select
+                                    name="ingredientUnit"
+                                    required
+                                    class="w-full rounded-lg bg-white px-3 py-2.5 text-gray-900 outline-none focus:ring-2 focus:ring-gray-200"
+                                >
+                                    <option value="gram">gram</option>
+                                    <option value="kg">kg</option>
+                                    <option value="ml">ml</option>
+                                    <option value="dl">dl</option>
+                                    <option value="l">liter</option>
+                                    <option value="pcs">stk</option>
+                                    <option value="tbsp">ss</option>
+                                    <option value="tsp">ts</option>
+                                    <option value="cups">kopper</option>
+                                    <option value="cloves">fedd</option>
+                                    <option value="slices">skiver</option>
+                                    <option value="leaves">blader</option>
+                                    <option value="cans">bokser</option>
+                                    <option value="pinch">klype</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onclick="addIngredient()"
+                        class="mt-2 inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                    >
+                        <span class="text-lg leading-none">+</span>
+                        <span>Legg til ingrediens</span>
+                    </button>
+                </div>
+
+                <!-- Instructions -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Fremgangsmåte</label>
+                    <div id="instructions" class="mt-2 space-y-2">
+                        <div class="flex gap-2 items-start">
+                            <span class="step-number text-xs text-gray-400 w-4 text-right shrink-0 mt-3">1.</span>
+                            <textarea
+                                name="instructions"
+                                required
+                                rows="1"
+                                oninput="autoResize(this)"
+                                class="w-full rounded-lg bg-gray-50 px-4 py-2.5 text-gray-900 outline-none focus:ring-2 focus:ring-gray-200 resize-none overflow-hidden"
+                            ></textarea>
+                            <button
+                                type="button"
+                                onclick="removeRow(this, 'instructions')"
+                                class="text-gray-400 hover:text-gray-700 transition-colors cursor-pointer shrink-0 text-lg leading-none mt-2.5"
+                            >
+                                ×
+                            </button>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onclick="addInstruction()"
+                        class="mt-2 inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                    >
+                        <span class="text-lg leading-none">+</span>
+                        <span>Legg til steg</span>
+                    </button>
+                </div>
+
+                <!-- Submit -->
+                <button
+                    type="submit"
+                    id="submit-btn"
+                    class="w-full rounded-lg bg-gray-900 py-3 text-sm font-medium text-white hover:bg-gray-800 transition-colors cursor-pointer"
+                >
+                    Opprett oppskrift
+                </button>
+            </form>
+        </main>
+
+        <!-- Delete confirmation modal -->
+        <div
+            id="delete-modal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+            style="display: none"
+        >
+            <div class="bg-white rounded-2xl shadow-xl p-8 w-[90%] max-w-sm" onclick="event.stopPropagation()">
+                <h2 class="text-lg font-semibold text-gray-900">Slett oppskrift</h2>
+                <p class="mt-1 text-sm text-gray-500">
+                    Er du sikker på at du vil slette denne oppskriften? Dette kan ikke angres.
+                </p>
+                <div class="mt-5 flex gap-3 justify-end">
+                    <button
+                        onclick="hideDeleteConfirm()"
+                        class="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                    >
+                        Avbryt
+                    </button>
+                    <button
+                        onclick="confirmDelete()"
+                        class="rounded-lg bg-red-600 px-5 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors cursor-pointer"
+                    >
+                        Slett
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function renumberSteps() {
+                const container = document.getElementById("instructions");
+                container.querySelectorAll(".step-number").forEach((span, i) => {
+                    span.textContent = i + 1 + ".";
+                });
+            }
+
+            function removeRow(btn, containerId) {
+                const container = document.getElementById(containerId);
+                if (container.children.length <= 1) return;
+                const row = containerId === "ingredients" ? btn.closest(".space-y-2.rounded-lg") : btn.closest("div");
+                row.remove();
+                if (containerId === "instructions") renumberSteps();
+            }
+
+            function addInstruction() {
+                const container = document.getElementById("instructions");
+                const count = container.children.length + 1;
+                const div = document.createElement("div");
+                div.className = "flex gap-2 items-start";
+                div.innerHTML = `
+                    <span class="step-number text-xs text-gray-400 w-4 text-right shrink-0 mt-3">${count}.</span>
+                    <textarea
+                        name="instructions"
+                        required
+                        rows="1"
+                        oninput="autoResize(this)"
+                        class="w-full rounded-lg bg-gray-50 px-4 py-2.5 text-gray-900 outline-none focus:ring-2 focus:ring-gray-200 resize-none overflow-hidden"
+                    ></textarea>
+                    <button type="button" onclick="removeRow(this, 'instructions')" class="text-gray-400 hover:text-gray-700 transition-colors cursor-pointer shrink-0 text-lg leading-none mt-2.5">×</button>
+                `;
+                container.appendChild(div);
+            }
+
+            function autoResize(el) {
+                el.style.height = "auto";
+                el.style.height = el.scrollHeight + "px";
+            }
+
+            function addIngredient(data) {
+                const container = document.getElementById("ingredients");
+                const div = document.createElement("div");
+                div.className = "space-y-2 rounded-lg bg-gray-50 p-3";
+                div.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <input
+                            type="text"
+                            name="ingredientName"
+                            placeholder="Ingrediens"
+                            required
+                            class="w-full rounded-lg bg-white px-4 py-2.5 text-gray-900 outline-none focus:ring-2 focus:ring-gray-200"
+                        />
+                        <button type="button" onclick="removeRow(this, 'ingredients')" class="text-gray-400 hover:text-gray-700 transition-colors cursor-pointer shrink-0 text-lg leading-none">×</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input
+                            type="number"
+                            name="ingredientAmount"
+                            placeholder="Mengde"
+                            min="0"
+                            step="any"
+                            required
+                            class="w-full rounded-lg bg-white px-4 py-2.5 text-gray-900 outline-none focus:ring-2 focus:ring-gray-200"
+                        />
+                        <select
+                            name="ingredientUnit"
+                            required
+                            class="w-full rounded-lg bg-white px-3 py-2.5 text-gray-900 outline-none focus:ring-2 focus:ring-gray-200"
+                        >
+                            <option value="gram">gram</option>
+                            <option value="kg">kg</option>
+                            <option value="ml">ml</option>
+                            <option value="dl">dl</option>
+                            <option value="l">liter</option>
+                            <option value="pcs">stk</option>
+                            <option value="tbsp">ss</option>
+                            <option value="tsp">ts</option>
+                            <option value="cups">kopper</option>
+                            <option value="cloves">fedd</option>
+                            <option value="slices">skiver</option>
+                            <option value="leaves">blader</option>
+                            <option value="cans">bokser</option>
+                            <option value="pinch">klype</option>
+                        </select>
+                    </div>
+                `;
+                container.appendChild(div);
+                if (data) {
+                    div.querySelector('[name="ingredientName"]').value = data.name;
+                    div.querySelector('[name="ingredientAmount"]').value = data.amount;
+                    div.querySelector('[name="ingredientUnit"]').value = data.unit;
+                }
+            }
+
+            // --- Edit mode ---
+            const editSlug = new URLSearchParams(window.location.search).get("edit");
+            const isEditMode = !!editSlug;
+
+            async function loadRecipeForEdit(slug) {
+                const res = await fetch(`/api/recipe/${slug}`);
+                if (!res.ok) return null;
+                return res.json();
+            }
+
+            async function setupEditMode() {
+                if (!isEditMode) return;
+
+                document.getElementById("edit-field").value = "true";
+                document.getElementById("page-title").textContent = "Rediger oppskrift";
+                document.getElementById("page-desc").textContent = "Endre en eksisterende oppskrift.";
+                document.getElementById("submit-btn").textContent = "Lagre";
+                document.getElementById("delete-btn").style.display = "block";
+                document.title = "Rediger oppskrift";
+
+                const recipe = await loadRecipeForEdit(editSlug);
+                if (!recipe) return;
+
+                document.getElementById("name").value = recipe.name;
+                document.getElementById("name").readOnly = true;
+                document.getElementById("name").classList.add("text-gray-400", "cursor-not-allowed");
+                document.getElementById("description").value = recipe.description;
+                document.getElementById("kind").value = recipe.kind;
+                document.getElementById("cookTimeMinutes").value = recipe.cookTimeMinutes;
+
+                // Populate instructions
+                const instrContainer = document.getElementById("instructions");
+                instrContainer.innerHTML = "";
+                recipe.instructions.forEach((text, i) => {
+                    addInstruction();
+                    const textareas = instrContainer.querySelectorAll('textarea[name="instructions"]');
+                    textareas[i].value = text;
+                    autoResize(textareas[i]);
+                });
+
+                // Populate ingredients
+                const ingContainer = document.getElementById("ingredients");
+                ingContainer.innerHTML = "";
+                recipe.ingredients.forEach((ing) => {
+                    addIngredient(ing);
+                });
+            }
+
+            setupEditMode();
+
+            // --- Form submission with duplicate check ---
+            document.getElementById("recipe-form").addEventListener("submit", async function (e) {
+                e.preventDefault();
+                const nameError = document.getElementById("name-error");
+                nameError.classList.add("hidden");
+
+                const formData = new FormData(this);
+
+                // Always set password from sessionStorage right before sending
+                const pw = sessionStorage.getItem("recipe_password") || "";
+                formData.set("password", pw);
+
+                const res = await fetch("/recipe", {
+                    method: "POST",
+                    body: formData,
+                    redirect: "manual",
+                });
+
+                if (res.status === 401) {
+                    sessionStorage.removeItem("recipe_password");
+                    showModal();
+                    return;
+                }
+
+                if (res.status === 409) {
+                    nameError.classList.remove("hidden");
+                    return;
+                }
+
+                // 303 redirect means success — build the slug and navigate
+                if (res.type === "opaqueredirect") {
+                    const slug = formData
+                        .get("name")
+                        .trim()
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]+/g, "-")
+                        .replace(/^-|-$/g, "");
+                    window.location.href = "/recipe/" + slug;
+                    return;
+                }
+
+                if (res.ok) {
+                    window.location.href = "/";
+                }
+            });
+
+            // --- Delete recipe ---
+            function showDeleteConfirm() {
+                document.getElementById("delete-modal").style.display = "flex";
+            }
+
+            function hideDeleteConfirm() {
+                document.getElementById("delete-modal").style.display = "none";
+            }
+
+            async function confirmDelete() {
+                const pw = sessionStorage.getItem("recipe_password") || "";
+                const res = await fetch(`/recipe/${editSlug}`, {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ password: pw }),
+                });
+
+                if (res.status === 401) {
+                    hideDeleteConfirm();
+                    sessionStorage.removeItem("recipe_password");
+                    showModal();
+                    return;
+                }
+
+                if (res.ok) {
+                    window.location.href = "/";
+                }
+            }
+        </script>
+
+        <!-- Password Modal -->
+        <div
+            id="password-modal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+            style="display: none"
+        >
+            <div class="bg-white rounded-2xl shadow-xl p-8 w-[90%] max-w-sm" onclick="event.stopPropagation()">
+                <h2 class="text-lg font-semibold text-gray-900">Skriv inn passord</h2>
+                <p id="modal-desc" class="mt-1 text-sm text-gray-500">Det kreves passord for å opprette oppskrifter.</p>
+                <input
+                    id="modal-password"
+                    type="password"
+                    placeholder="Passord"
+                    onkeydown="if (event.key === 'Enter') submitModal();"
+                    class="mt-4 w-full rounded-lg bg-gray-50 px-4 py-2.5 text-gray-900 outline-none focus:ring-2 focus:ring-gray-200"
+                />
+                <p id="modal-error" class="hidden mt-2 text-sm text-red-500"></p>
+                <div class="mt-5 flex gap-3 justify-end">
+                    <a
+                        href="/"
+                        class="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                    >
+                        Avbryt
+                    </a>
+                    <button
+                        onclick="submitModal()"
+                        class="rounded-lg bg-gray-900 px-5 py-2 text-sm font-medium text-white hover:bg-gray-800 transition-colors cursor-pointer"
+                    >
+                        Fortsett
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // --- Password auth ---
+            const modal = document.getElementById("password-modal");
+
+            if (isEditMode) {
+                document.getElementById("modal-desc").textContent = "Det kreves passord for å redigere oppskrifter.";
+            }
+
+            function showModal() {
+                modal.style.display = "flex";
+                document.getElementById("modal-password").value = "";
+                document.getElementById("modal-error").classList.add("hidden");
+                setTimeout(() => document.getElementById("modal-password").focus(), 50);
+            }
+
+            function hideModal() {
+                modal.style.display = "none";
+            }
+
+            async function verifyPassword(password) {
+                const res = await fetch("/auth", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ password }),
+                });
+                return res.ok;
+            }
+
+            async function submitModal() {
+                const input = document.getElementById("modal-password");
+                const error = document.getElementById("modal-error");
+                const pw = input.value;
+
+                if (!pw) {
+                    error.textContent = "Vennligst skriv inn passord";
+                    error.classList.remove("hidden");
+                    return;
+                }
+
+                const ok = await verifyPassword(pw);
+                if (ok) {
+                    sessionStorage.setItem("recipe_password", pw);
+                    document.getElementById("password-field").value = pw;
+                    hideModal();
+                } else {
+                    error.textContent = "Feil passord";
+                    error.classList.remove("hidden");
+                    input.value = "";
+                    input.focus();
+                }
+            }
+
+            // On load: check sessionStorage, verify it's still valid, or show modal
+            (async function () {
+                const stored = sessionStorage.getItem("recipe_password");
+                if (stored && (await verifyPassword(stored))) {
+                    document.getElementById("password-field").value = stored;
+                } else {
+                    sessionStorage.removeItem("recipe_password");
+                    showModal();
+                }
+            })();
+        </script>
+    </body>
+</html>

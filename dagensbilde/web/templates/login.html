@@ -1,0 +1,43 @@
+{{define "content"}}
+<div class="flex flex-col items-center justify-center min-h-screen -mt-4">
+    <h1 class="text-2xl font-bold mb-1">Dagens Bilde</h1>
+    <p class="text-gray-400 text-sm mb-8">Del ditt daglige bilde</p>
+
+    <form method="POST" action="/api/login" class="w-full space-y-4" id="login-form">
+        <div>
+            <label for="name" class="block text-sm font-medium text-gray-600 mb-1.5">Navn</label>
+            <input
+                type="text"
+                id="name"
+                name="name"
+                required
+                autocomplete="name"
+                placeholder="Ditt visningsnavn"
+                class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-white"
+            />
+        </div>
+        <div>
+            <label for="password" class="block text-sm font-medium text-gray-600 mb-1.5">Passord</label>
+            <input
+                type="password"
+                id="password"
+                name="password"
+                required
+                placeholder="Felles passord"
+                class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 bg-white"
+            />
+        </div>
+
+        {{if .Error}}
+        <p class="text-red-500 text-sm text-center">{{.Error}}</p>
+        {{end}}
+
+        <button
+            type="submit"
+            class="w-full bg-gray-900 text-white rounded-xl py-3 text-sm font-medium active:scale-[0.98] transition-transform"
+        >
+            Logg inn
+        </button>
+    </form>
+</div>
+{{end}}

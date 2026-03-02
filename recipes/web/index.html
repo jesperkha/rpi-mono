@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="no">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="theme-color" content="#111827" />
+        <link rel="manifest" href="/assets/manifest.json" />
+        <link rel="apple-touch-icon" href="/assets/icon-192.png" />
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+        <title>Oppskrifter</title>
+        <style>
+            .kind-badge[data-k="dinner"] {
+                background: #fce4ec;
+                color: #c62828;
+            }
+            .kind-badge[data-k="lunch"] {
+                background: #fff3e0;
+                color: #e65100;
+            }
+            .kind-badge[data-k="breakfast"] {
+                background: #fffde7;
+                color: #f57f17;
+            }
+            .kind-badge[data-k="sauce"] {
+                background: #fce4ec;
+                color: #ad1457;
+            }
+            .kind-badge[data-k="dessert"] {
+                background: #f3e5f5;
+                color: #7b1fa2;
+            }
+            .kind-badge[data-k="cocktail"] {
+                background: #e8eaf6;
+                color: #283593;
+            }
+            .kind-badge[data-k="snack"] {
+                background: #e0f2f1;
+                color: #00695c;
+            }
+        </style>
+    </head>
+    <body class="bg-white text-gray-800 antialiased">
+        <main class="mx-auto w-[90%] md:w-[480px] py-10">
+            <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-400 tracking-wide uppercase">Oppskrifter</span>
+                <a
+                    href="/create"
+                    class="inline-flex items-center gap-1 rounded-full bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 transition-colors"
+                    title="Ny oppskrift"
+                    >Ny +</a
+                >
+            </div>
+
+            <h1 class="mt-6 text-4xl font-semibold tracking-tight text-gray-900">Hva craver du i dag?</h1>
+
+            <div class="mt-6 grid grid-cols-2 gap-3">
+                <select
+                    id="filter-time"
+                    onchange="applyFilters()"
+                    class="w-full rounded-lg bg-gray-50 px-4 py-2.5 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-gray-200 cursor-pointer"
+                >
+                    <option value="0">Alle tider</option>
+                    <option value="15">≤ 15 min</option>
+                    <option value="30">≤ 30 min</option>
+                    <option value="45">≤ 45 min</option>
+                    <option value="60">≤ 60 min</option>
+                    <option value="61">&gt; 60 min</option>
+                </select>
+                <select
+                    id="filter-kind"
+                    onchange="applyFilters()"
+                    class="w-full rounded-lg bg-gray-50 px-4 py-2.5 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-gray-200 cursor-pointer"
+                >
+                    <option value="">Alle typer</option>
+                    <option value="dinner">Middag</option>
+                    <option value="lunch">Lunsj</option>
+                    <option value="breakfast">Frokost</option>
+                    <option value="sauce">Saus</option>
+                    <option value="dessert">Dessert</option>
+                    <option value="cocktail">Cocktail</option>
+                    <option value="snack">Snacks</option>
+                </select>
+            </div>
+
+            <input
+                id="search"
+                type="text"
+                oninput="applyFilters()"
+                placeholder="Søk etter oppskrift..."
+                class="mt-3 w-full rounded-lg bg-gray-50 px-4 py-2.5 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-gray-200"
+            />
+
+            <div id="recipe-list" class="mt-6 space-y-3">
+                {{ range . }}
+                <a
+                    href="/recipe/{{ .Slug }}"
+                    data-time="{{ .CookTimeMinutes }}"
+                    data-kind="{{ .Kind }}"
+                    data-slug="{{ .Slug }}"
+                    class="recipe-card relative block p-5 rounded-lg border border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm transition-all"
+                >
+                    <svg
+                        class="star-indicator absolute top-4 right-4 hidden"
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="#facc15"
+                        stroke="#facc15"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <polygon
+                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                        ></polygon>
+                    </svg>
+                    <h2 class="text-lg font-medium text-gray-900">{{ .Name }}</h2>
+                    <p class="mt-1 text-sm text-gray-500">{{ .Description }}</p>
+                    <div class="mt-3 flex items-center gap-2">
+                        <span class="text-xs text-gray-400">{{ .CookTimeMinutes }} min</span>
+                        {{ if .Kind }}
+                        <span class="kind-badge text-xs font-medium px-2 py-0.5 rounded-full" data-k="{{ .Kind }}"
+                            >{{ .Kind }}</span
+                        >
+                        {{ end }}
+                    </div>
+                </a>
+                {{ end }}
+            </div>
+        </main>
+
+        <script>
+            const kindLabels = {
+                dinner: "Middag",
+                lunch: "Lunsj",
+                breakfast: "Frokost",
+                sauce: "Saus",
+                dessert: "Dessert",
+                cocktail: "Cocktail",
+                snack: "Snacks",
+            };
+            document.querySelectorAll(".kind-badge").forEach((b) => {
+                b.textContent = kindLabels[b.dataset.k] || b.textContent;
+            });
+
+            function getStarred() {
+                try {
+                    return JSON.parse(localStorage.getItem("starred") || "[]");
+                } catch {
+                    return [];
+                }
+            }
+
+            // Fuzzy match: checks if all characters in the query appear
+            // in order within the target string, allowing gaps.
+            function fuzzyMatch(query, target) {
+                query = query.toLowerCase();
+                target = target.toLowerCase();
+                let qi = 0;
+                for (let ti = 0; ti < target.length && qi < query.length; ti++) {
+                    if (target[ti] === query[qi]) qi++;
+                }
+                return qi === query.length;
+            }
+
+            function applyFilters() {
+                const maxTime = Number(document.getElementById("filter-time").value);
+                const kind = document.getElementById("filter-kind").value;
+                const query = document.getElementById("search").value.trim();
+                const starred = getStarred();
+                const list = document.getElementById("recipe-list");
+                const cards = [...list.querySelectorAll(".recipe-card")];
+
+                // Sort: starred first, preserve original order within each group
+                cards.sort((a, b) => {
+                    const aStarred = starred.includes(a.dataset.slug) ? 0 : 1;
+                    const bStarred = starred.includes(b.dataset.slug) ? 0 : 1;
+                    return aStarred - bStarred;
+                });
+
+                // Re-append in sorted order and apply visibility filters
+                cards.forEach((card) => {
+                    list.appendChild(card);
+                    const time = parseInt(card.dataset.time);
+                    const cardKind = card.dataset.kind;
+                    const title = card.querySelector("h2").textContent;
+                    const timeOk = maxTime === 0 || (maxTime === 61 ? time > 60 : time <= maxTime);
+                    const kindOk = kind === "" || cardKind === kind;
+                    const searchOk = query === "" || fuzzyMatch(query, title);
+                    card.style.display = timeOk && kindOk && searchOk ? "" : "none";
+
+                    // Show or hide star indicator
+                    const starEl = card.querySelector(".star-indicator");
+                    if (starEl) {
+                        starEl.classList.toggle("hidden", !starred.includes(card.dataset.slug));
+                    }
+                });
+            }
+
+            // Sort on initial page load
+            applyFilters();
+        </script>
+    </body>
+</html>

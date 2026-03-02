@@ -1,0 +1,17 @@
+{
+    "lastUpdated": "2025-08-24T21:03:54.917647878+02:00",
+    "fields": {
+        "PORT": {
+            "required": true,
+            "format": ":{number}",
+            "key": "PORT",
+            "default": ":8080"
+        },
+        "PASSWORD_HASH": {
+            "required": true,
+            "key": "PASSWORD_HASH",
+            "length": 64,
+            "lengthRequired": true
+        }
+    }
+}

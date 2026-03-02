@@ -1,0 +1,300 @@
+{{define "content"}}
+<header class="pt-6 pb-4 flex items-center justify-between">
+    <div>
+        <h1 class="text-lg font-bold">Dagens Bilde</h1>
+        <p class="text-xs text-gray-400">{{.Today}}</p>
+    </div>
+    {{if not .HasUploaded}}
+    <button
+        onclick="document.getElementById('upload-modal').classList.remove('hidden')"
+        class="bg-gray-900 text-white rounded-full w-10 h-10 flex items-center justify-center text-xl active:scale-95 transition-transform shadow-md"
+        aria-label="Last opp bilde"
+    >
+        +
+    </button>
+    {{end}}
+</header>
+
+{{if eq (len .Images) 0}}
+<div class="flex flex-col items-center justify-center py-20 text-gray-400">
+    <svg class="w-16 h-16 mb-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1"
+            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+        />
+    </svg>
+    <p class="text-sm">Ingen bilder ennå i dag</p>
+    <p class="text-xs mt-1">Vær den første til å laste opp!</p>
+</div>
+{{else}}
+<div class="grid grid-cols-2 gap-3 pb-4">
+    {{range .Images}}
+    <div
+        class="fade-in cursor-pointer"
+        onclick="openImage({{.ID}}, '{{.URL}}', '{{.UserName}}', '{{.CreatedAt}}', {{.LikeCount}}, {{.Liked}}, {{if eq .UserID $.CurrentUserID}}true{{else}}false{{end}})"
+    >
+        <div class="relative rounded-xl overflow-hidden shadow-sm border border-gray-100 bg-white">
+            <img src="{{.URL}}" alt="Bilde av {{.UserName}}" class="w-full aspect-square object-cover" loading="lazy" />
+            <div
+                class="absolute bottom-2 right-2 bg-white/80 backdrop-blur-sm rounded-full px-2 py-0.5 flex items-center gap-1 text-xs font-medium"
+            >
+                <span>♥</span>
+                <span id="badge-{{.ID}}">{{.LikeCount}}</span>
+            </div>
+        </div>
+    </div>
+    {{end}}
+</div>
+{{end}}
+
+<!-- Upload Modal -->
+<div id="upload-modal" class="hidden fixed inset-0 z-50 bg-black/40 flex items-end justify-center">
+    <div class="bg-white w-full max-w-[480px] rounded-t-2xl p-6 pb-8 fade-in">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold">Last opp bilde</h2>
+            <button
+                onclick="document.getElementById('upload-modal').classList.add('hidden')"
+                class="text-gray-400 text-2xl leading-none"
+            >
+                &times;
+            </button>
+        </div>
+        <form method="POST" action="/api/upload" enctype="multipart/form-data" id="upload-form">
+            <label
+                class="block w-full border-2 border-dashed border-gray-200 rounded-xl p-8 text-center cursor-pointer hover:border-gray-300 transition-colors mb-4"
+            >
+                <input
+                    type="file"
+                    name="image"
+                    accept="image/jpeg,image/png,image/webp"
+                    required
+                    class="hidden"
+                    onchange="previewFile(this)"
+                />
+                <div id="upload-placeholder">
+                    <svg
+                        class="w-10 h-10 mx-auto text-gray-300 mb-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <p class="text-sm text-gray-400">Trykk for å velge bilde</p>
+                    <p class="text-xs text-gray-300 mt-1">JPG, PNG eller WebP · maks 5 MB</p>
+                </div>
+                <img id="upload-preview" class="hidden mx-auto max-h-48 rounded-lg" />
+            </label>
+            <div id="upload-error" class="text-red-500 text-sm text-center mb-3 hidden"></div>
+            <button
+                type="submit"
+                class="w-full bg-gray-900 text-white rounded-xl py-3 text-sm font-medium active:scale-[0.98] transition-transform"
+            >
+                Last opp
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Image Detail Modal -->
+<div
+    id="image-modal"
+    class="hidden fixed inset-0 z-50 bg-black/50 flex flex-col items-center justify-center p-4 gap-4"
+    onclick="if (event.target === this) this.classList.add('hidden');"
+>
+    <div class="bg-white w-full max-w-[420px] rounded-2xl overflow-hidden shadow-xl fade-in flex flex-col">
+        <!-- Image -->
+        <img id="modal-img" src="" class="w-full max-h-[55vh] object-contain bg-gray-50" />
+        <!-- Info + like -->
+        <div class="p-4 flex items-center justify-between">
+            <div>
+                <p id="modal-user" class="font-semibold text-sm"></p>
+                <p id="modal-time" class="text-xs text-gray-400 mt-0.5"></p>
+            </div>
+            <button
+                id="modal-like-btn"
+                onclick="toggleLike()"
+                class="flex items-center gap-2 px-6 py-3 rounded-full text-base font-semibold transition-all active:scale-95 bg-gray-100 text-gray-600"
+            >
+                <span id="modal-heart" class="text-lg">♡</span>
+                <span id="modal-like-count">0</span>
+            </button>
+        </div>
+    </div>
+    <!-- Close / Delete buttons below popup -->
+    <div class="flex items-center gap-3">
+        <button
+            id="modal-delete-btn"
+            onclick="confirmDelete()"
+            class="hidden w-12 h-12 flex items-center justify-center rounded-full bg-red-500 text-white text-xl shadow-lg active:scale-95 transition-all"
+            aria-label="Slett"
+        >
+            🗑
+        </button>
+        <button
+            onclick="document.getElementById('image-modal').classList.add('hidden')"
+            class="w-12 h-12 flex items-center justify-center rounded-full bg-white/90 text-gray-600 text-2xl shadow-lg active:scale-95 transition-all backdrop-blur-sm"
+            aria-label="Lukk"
+        >
+            &times;
+        </button>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-confirm-modal" class="hidden fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-[320px] w-full shadow-xl text-center fade-in">
+        <p class="text-lg font-semibold mb-2">Slett bilde?</p>
+        <p class="text-sm text-gray-500 mb-6">
+            Bildet og alle likes blir permanent slettet. Du kan laste opp et nytt bilde etterpå.
+        </p>
+        <div class="flex gap-3">
+            <button
+                onclick="document.getElementById('delete-confirm-modal').classList.add('hidden')"
+                class="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-700 font-medium text-sm active:scale-95 transition-transform"
+            >
+                Avbryt
+            </button>
+            <button
+                onclick="deleteImage()"
+                class="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-medium text-sm active:scale-95 transition-transform"
+            >
+                Slett
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentImageID = null;
+
+    function previewFile(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById("upload-preview").src = e.target.result;
+            document.getElementById("upload-preview").classList.remove("hidden");
+            document.getElementById("upload-placeholder").classList.add("hidden");
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function openImage(id, url, user, created, likes, liked, isOwner) {
+        currentImageID = id;
+        document.getElementById("modal-img").src = url;
+        document.getElementById("modal-user").textContent = user;
+        document.getElementById("modal-time").textContent = formatTime(created);
+        // Show stale data immediately, then refresh
+        document.getElementById("modal-like-count").textContent = likes;
+        updateHeartUI(liked);
+
+        // Show/hide delete button based on ownership
+        const deleteBtn = document.getElementById("modal-delete-btn");
+        if (isOwner) {
+            deleteBtn.classList.remove("hidden");
+            deleteBtn.classList.add("flex");
+        } else {
+            deleteBtn.classList.add("hidden");
+            deleteBtn.classList.remove("flex");
+        }
+
+        document.getElementById("image-modal").classList.remove("hidden");
+
+        // Fetch fresh like state from API
+        fetch("/api/images/" + id + "/like")
+            .then((res) => res.json())
+            .then((data) => {
+                document.getElementById("modal-like-count").textContent = data.like_count;
+                updateHeartUI(data.liked);
+                // Also update the grid badge
+                const badge = document.getElementById("badge-" + id);
+                if (badge) badge.textContent = data.like_count;
+            })
+            .catch((e) => console.error(e));
+    }
+
+    function confirmDelete() {
+        document.getElementById("delete-confirm-modal").classList.remove("hidden");
+    }
+
+    async function deleteImage() {
+        if (!currentImageID) return;
+        try {
+            const res = await fetch("/api/images/" + currentImageID, { method: "DELETE" });
+            if (res.ok) {
+                document.getElementById("delete-confirm-modal").classList.add("hidden");
+                document.getElementById("image-modal").classList.add("hidden");
+                window.location.reload();
+            } else {
+                const data = await res.json();
+                alert(data.error || "Kunne ikke slette bildet");
+                document.getElementById("delete-confirm-modal").classList.add("hidden");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Noe gikk galt");
+            document.getElementById("delete-confirm-modal").classList.add("hidden");
+        }
+    }
+
+    function updateHeartUI(liked) {
+        const btn = document.getElementById("modal-like-btn");
+        const heart = document.getElementById("modal-heart");
+        if (liked) {
+            heart.textContent = "♥";
+            btn.className =
+                "flex items-center gap-2 px-6 py-3 rounded-full text-base font-semibold transition-all active:scale-95 bg-red-50 text-red-500";
+        } else {
+            heart.textContent = "♡";
+            btn.className =
+                "flex items-center gap-2 px-6 py-3 rounded-full text-base font-semibold transition-all active:scale-95 bg-gray-100 text-gray-600";
+        }
+    }
+
+    async function toggleLike() {
+        if (!currentImageID) return;
+        try {
+            const res = await fetch("/api/images/" + currentImageID + "/like", { method: "POST" });
+            const data = await res.json();
+            if (res.ok) {
+                document.getElementById("modal-like-count").textContent = data.like_count;
+                updateHeartUI(data.liked);
+                const badge = document.getElementById("badge-" + currentImageID);
+                if (badge) badge.textContent = data.like_count;
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function formatTime(iso) {
+        const d = new Date(iso);
+        return d.toLocaleTimeString("no-NO", { hour: "2-digit", minute: "2-digit" });
+    }
+
+    // Upload form: submit via fetch so we can handle errors without leaving the page
+    document.getElementById("upload-form")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const errEl = document.getElementById("upload-error");
+        errEl.classList.add("hidden");
+
+        try {
+            const res = await fetch(form.action, { method: "POST", body: new FormData(form) });
+            if (res.ok) {
+                window.location.reload();
+            } else {
+                const data = await res.json();
+                errEl.textContent = data.error || "Noe gikk galt";
+                errEl.classList.remove("hidden");
+            }
+        } catch (err) {
+            errEl.textContent = "Kunne ikke laste opp";
+            errEl.classList.remove("hidden");
+        }
+    });
+</script>
+{{end}}
