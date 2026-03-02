@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Login - RPi Admin</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                darkMode: "class",
+                theme: {
+                    extend: {
+                        colors: {
+                            dark: {
+                                bg: "#0f172a",
+                                card: "#1e293b",
+                                border: "#334155",
+                            },
+                        },
+                    },
+                },
+            };
+        </script>
+    </head>
+    <body
+        class="bg-dark-bg min-h-screen text-gray-100 flex items-center justify-center"
+    >
+        <div class="container mx-auto px-4 max-w-sm">
+            <div class="bg-dark-card rounded-lg border border-dark-border p-6">
+                <header class="mb-6 text-center">
+                    <h1 class="text-2xl font-bold text-white">🍓 RPi Admin</h1>
+                    <p class="text-gray-400 text-sm mt-1">
+                        Enter password to continue
+                    </p>
+                </header>
+
+                {{if .Error}}
+                <div
+                    class="mb-4 bg-red-900/50 border border-red-700 rounded-lg p-3"
+                >
+                    <p class="text-red-400 text-sm text-center">{{.Error}}</p>
+                </div>
+                {{end}}
+
+                <form method="POST" action="/login">
+                    <div class="mb-4">
+                        <input
+                            type="password"
+                            name="password"
+                            placeholder="Password"
+                            autofocus
+                            required
+                            class="w-full px-4 py-3 bg-dark-bg border border-dark-border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200"
+                    >
+                        Login
+                    </button>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>
+
