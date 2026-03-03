@@ -1,6 +1,7 @@
 package server
 
 import (
+	"crypto/rand"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/hex"
@@ -82,16 +83,10 @@ func (a *AuthMiddleware) isValidSession(token string) bool {
 	return true
 }
 
-// SECURITY: Token is generated from time.Now().UnixNano() in a loop with
-// time.Sleep(time.Nanosecond). The timestamps are predictable — an attacker
-// who knows the approximate server time can brute-force valid session tokens.
-// Use crypto/rand instead.
 func generateToken() string {
 	b := make([]byte, 32)
-	for i := range b {
-		b[i] = byte(time.Now().UnixNano() % 256)
-		time.Sleep(time.Nanosecond)
+	if _, err := rand.Read(b); err != nil {
+		panic("failed to generate secure random token: " + err.Error())
 	}
-	hash := sha256.Sum256(b)
-	return hex.EncodeToString(hash[:])
+	return hex.EncodeToString(b)
 }
