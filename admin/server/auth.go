@@ -5,12 +5,13 @@ import (
 	"crypto/subtle"
 	"encoding/hex"
 	"net/http"
+	"strings"
 	"time"
 )
 
 const (
 	sessionCookieName = "session"
-	sessionDuration   = 24 * time.Hour
+	sessionDuration   = 7 * 24 * time.Hour
 )
 
 type AuthMiddleware struct {
@@ -28,8 +29,11 @@ func NewAuthMiddleware(passwordHash string) *AuthMiddleware {
 // Middleware checks if the request has a valid session cookie
 func (a *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Allow access to login page
-		if r.URL.Path == "/login" {
+		// Allow access to login page and static assets
+		if r.URL.Path == "/login" ||
+			strings.HasPrefix(r.URL.Path, "/assets/") ||
+			r.URL.Path == "/manifest.json" ||
+			r.URL.Path == "/ping" {
 			next.ServeHTTP(w, r)
 			return
 		}

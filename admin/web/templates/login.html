@@ -3,69 +3,103 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="theme-color" content="#0f172a" />
+        <meta name="theme-color" content="#1e2030" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" href="/assets/icon-192.png" />
         <link rel="apple-touch-icon" href="/assets/icon-192.png" />
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
         <title>Login - RPi Admin</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <script>
-            tailwind.config = {
-                darkMode: "class",
-                theme: {
-                    extend: {
-                        colors: {
-                            dark: {
-                                bg: "#0f172a",
-                                card: "#1e293b",
-                                border: "#334155",
-                            },
-                        },
-                    },
-                },
-            };
-        </script>
+        <style type="text/tailwindcss">
+            @theme {
+                --color-card: #24273a;
+                --color-surface: #1e2030;
+                --color-border: #3b3f5c;
+                --color-text: #e2e8f8;
+                --color-subtext: #b8c0e0;
+                --color-red: #f55a7a;
+                --color-blue: #5ea1f7;
+                --color-mauve: #b47afa;
+            }
+        </style>
     </head>
-    <body
-        class="bg-dark-bg min-h-screen text-gray-100 flex items-center justify-center"
-    >
-        <div class="container mx-auto px-4 max-w-sm">
-            <div class="bg-dark-card rounded-lg border border-dark-border p-6">
-                <header class="mb-6 text-center">
-                    <h1 class="text-2xl font-bold text-white">🍓 RPi Admin</h1>
-                    <p class="text-gray-400 text-sm mt-1">
-                        Enter password to continue
-                    </p>
-                </header>
+    <body class="bg-surface text-text min-h-screen flex items-center justify-center">
+        <div class="w-full max-w-sm px-4">
+            <div class="bg-card rounded-2xl border border-border p-6">
+                <div class="mb-6 text-center">
+                    <div class="flex items-center justify-center gap-2 mb-1">
+                        <svg
+                            class="w-6 h-6 text-mauve"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
+                            />
+                        </svg>
+                        <h1 class="text-2xl font-bold tracking-tight">RPi Admin</h1>
+                    </div>
+                    <p class="text-subtext text-sm">Enter password to continue</p>
+                </div>
 
                 {{if .Error}}
-                <div
-                    class="mb-4 bg-red-900/50 border border-red-700 rounded-lg p-3"
-                >
-                    <p class="text-red-400 text-sm text-center">{{.Error}}</p>
+                <div class="mb-4 bg-red/10 border border-red/30 rounded-xl p-3">
+                    <p class="text-red text-sm text-center">{{.Error}}</p>
                 </div>
                 {{end}}
 
-                <form method="POST" action="/login">
+                <form id="loginForm" method="POST" action="/login">
                     <div class="mb-4">
                         <input
                             type="password"
+                            id="passwordInput"
                             name="password"
                             placeholder="Password"
                             autofocus
                             required
-                            class="w-full px-4 py-3 bg-dark-bg border border-dark-border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                            class="w-full px-4 py-3 bg-surface border border-border rounded-xl text-text placeholder-subtext focus:outline-none focus:border-blue transition-colors"
                         />
                     </div>
                     <button
                         type="submit"
-                        class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200"
+                        class="w-full px-4 py-3 bg-blue/20 hover:bg-blue/30 text-blue font-medium rounded-xl transition-colors duration-200"
                     >
                         Login
                     </button>
                 </form>
             </div>
         </div>
+
+        <script>
+            const STORAGE_KEY = "rpi_admin_password";
+
+            // On successful login, save the password to localStorage
+            document.getElementById("loginForm").addEventListener("submit", function () {
+                const password = document.getElementById("passwordInput").value;
+                if (password) {
+                    localStorage.setItem(STORAGE_KEY, password);
+                }
+            });
+
+            // On page load, if we have a saved password and no error, auto-submit
+            (function () {
+                const hasError = {{if .Error}}true{{else}}false{{end}};
+                if (hasError) {
+                    // Clear saved password on auth error — it's no longer valid
+                    localStorage.removeItem(STORAGE_KEY);
+                    return;
+                }
+
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    document.getElementById("passwordInput").value = saved;
+                    document.getElementById("loginForm").submit();
+                }
+            })();
+        </script>
     </body>
 </html>
-
