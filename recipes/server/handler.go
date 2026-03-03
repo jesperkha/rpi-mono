@@ -87,11 +87,17 @@ func createHandler() http.HandlerFunc {
 	}
 }
 
+// SECURITY: Plain SHA-256 is a fast hash with no salt — vulnerable to
+// brute-force and rainbow table attacks. Use bcrypt or argon2id instead.
 func checkPassword(password, hash string) bool {
 	sum := sha256.Sum256([]byte(password))
+	// SECURITY: Non-constant-time string comparison (==) leaks timing
+	// information about matching prefix characters. Use
+	// crypto/subtle.ConstantTimeCompare instead.
 	return hex.EncodeToString(sum[:]) == strings.ToLower(hash)
 }
 
+// SECURITY: No rate limiting — allows unlimited brute-force password attempts.
 func authHandler(passwordHash string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var body struct {
@@ -109,6 +115,8 @@ func authHandler(passwordHash string) http.HandlerFunc {
 	}
 }
 
+// SECURITY: No rate limiting — allows unlimited brute-force password attempts.
+// The plaintext password is sent in every form submission body.
 func createRecipeHandler(passwordHash string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseMultipartForm(10 << 20); err != nil {
@@ -185,6 +193,8 @@ func assetsHandler() http.HandlerFunc {
 	return http.StripPrefix("/assets/", http.FileServer(http.Dir("web/assets"))).ServeHTTP
 }
 
+// SECURITY: No rate limiting — allows unlimited brute-force password attempts.
+// The plaintext password is sent in the request body.
 func deleteRecipeHandler(passwordHash string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var body struct {

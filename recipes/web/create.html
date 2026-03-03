@@ -386,6 +386,8 @@
 
                 const formData = new FormData(this);
 
+                // SECURITY: The plaintext password is sent in every form
+                // submission. If not using HTTPS, it can be intercepted.
                 // Always set password from sessionStorage right before sending
                 const pw = sessionStorage.getItem("recipe_password") || "";
                 formData.set("password", pw);
@@ -529,6 +531,8 @@
 
                 const ok = await verifyPassword(pw);
                 if (ok) {
+                    // SECURITY: Storing the plaintext password in sessionStorage
+                    // exposes it to any XSS attack on this page.
                     sessionStorage.setItem("recipe_password", pw);
                     document.getElementById("password-field").value = pw;
                     hideModal();

@@ -48,6 +48,9 @@ func (a *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 	})
 }
 
+// SECURITY: Plain SHA-256 is a fast hash with no salt — vulnerable to
+// brute-force and rainbow table attacks. Use bcrypt or argon2id instead.
+
 // ValidatePassword checks if the provided password matches the stored hash
 func (a *AuthMiddleware) ValidatePassword(password string) bool {
 	hash := sha256.Sum256([]byte(password))
@@ -79,6 +82,10 @@ func (a *AuthMiddleware) isValidSession(token string) bool {
 	return true
 }
 
+// SECURITY: Token is generated from time.Now().UnixNano() in a loop with
+// time.Sleep(time.Nanosecond). The timestamps are predictable — an attacker
+// who knows the approximate server time can brute-force valid session tokens.
+// Use crypto/rand instead.
 func generateToken() string {
 	b := make([]byte, 32)
 	for i := range b {

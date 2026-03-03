@@ -77,6 +77,8 @@
         <script>
             const STORAGE_KEY = "rpi_admin_password";
 
+            // SECURITY: Storing the plaintext password in localStorage exposes it
+            // to any XSS attack. localStorage is not cleared on tab/browser close.
             // On successful login, save the password to localStorage
             document.getElementById("loginForm").addEventListener("submit", function () {
                 const password = document.getElementById("passwordInput").value;

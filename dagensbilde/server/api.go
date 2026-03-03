@@ -46,6 +46,10 @@ func jsonOK(w http.ResponseWriter, v any) {
 
 // --- Auth middleware ---
 
+// SECURITY: The user_id cookie is a plain, unsigned integer. Any client can
+// change the cookie value to impersonate another user (horizontal privilege
+// escalation). Should use a signed/HMAC session token mapped server-side.
+
 // authMiddleware checks for a valid user_id cookie (set at login).
 // Returns JSON 401 for API routes.
 func (s *Server) authMiddleware(next http.Handler) http.Handler {
@@ -73,6 +77,9 @@ func (s *Server) authMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// SECURITY: Same forgeable user_id cookie issue as authMiddleware — an attacker
+// can set any integer value to bypass this check for any existing user.
+
 // pageAuthMiddleware redirects to /login for page routes when not authenticated.
 func (s *Server) pageAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -97,6 +104,9 @@ func (s *Server) pageAuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// SECURITY: User ID comes from an unsigned, forgeable cookie. The caller can
+// set any user_id value to act as another user across all endpoints using this.
+
 // getUserID extracts the authenticated user ID from the cookie.
 func getUserID(r *http.Request) int64 {
 	cookie, _ := r.Cookie("user_id")
@@ -116,6 +126,7 @@ type loginResponse struct {
 	Name   string `json:"name"`
 }
 
+// SECURITY: No rate limiting — allows unlimited brute-force password attempts.
 func (s *Server) loginHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		contentType := r.Header.Get("Content-Type")
@@ -159,8 +170,13 @@ func (s *Server) loginHandler() http.HandlerFunc {
 			return
 		}
 
+		// SECURITY: Plain SHA-256 is a fast hash with no salt — vulnerable to
+		// brute-force and rainbow table attacks. Use bcrypt or argon2id instead.
 		// Verify password against stored hash
 		hash := sha256.Sum256([]byte(password))
+		// SECURITY: Non-constant-time string comparison (!=) leaks timing
+		// information about matching prefix characters. Use
+		// crypto/subtle.ConstantTimeCompare instead.
 		if fmt.Sprintf("%x", hash) != s.config.PasswordHash {
 			if isForm {
 				http.Redirect(w, r, "/login?error=Feil+passord", http.StatusSeeOther)
@@ -169,6 +185,9 @@ func (s *Server) loginHandler() http.HandlerFunc {
 			jsonError(w, "wrong password", http.StatusUnauthorized)
 			return
 		}
+
+		// SECURITY: Any user who knows the shared password can create unlimited
+		// accounts by logging in with arbitrary names. No registration control.
 
 		// Find or create user by name
 		user, err := s.db.GetUserByName(name)
@@ -186,6 +205,11 @@ func (s *Server) loginHandler() http.HandlerFunc {
 			}
 			user = &database.User{ID: id, Name: name}
 		}
+
+		// SECURITY: Cookie value is a plain, predictable integer with no
+		// cryptographic signature — trivially forgeable. Secure flag is not set,
+		// so the cookie is sent over plain HTTP. The 1-year MaxAge means a
+		// stolen cookie remains valid for a very long time.
 
 		// Set a cookie with the user ID
 		http.SetCookie(w, &http.Cookie{
@@ -218,6 +242,8 @@ type uploadResponse struct {
 
 func (s *Server) uploadHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// SECURITY: userID comes from the forgeable user_id cookie — an attacker
+		// can upload images attributed to any user by changing the cookie value.
 		userID := getUserID(r)
 		today := time.Now().UTC().Format("2006-01-02")
 
@@ -357,6 +383,8 @@ func (s *Server) getTodayImagesHandler() http.HandlerFunc {
 
 func (s *Server) getImageLikeHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// SECURITY: userID from forgeable cookie — attacker can check like
+		// status for any user.
 		userID := getUserID(r)
 
 		imageIDStr := chi.URLParam(r, "id")
@@ -391,6 +419,8 @@ func (s *Server) getImageLikeHandler() http.HandlerFunc {
 
 func (s *Server) likeImageHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// SECURITY: userID from forgeable cookie — attacker can like/unlike
+		// images on behalf of any user by changing the cookie value.
 		userID := getUserID(r)
 
 		imageIDStr := chi.URLParam(r, "id")
@@ -452,6 +482,8 @@ func (s *Server) likeImageHandler() http.HandlerFunc {
 
 func (s *Server) deleteImageHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// SECURITY: userID from forgeable cookie — attacker can set their cookie
+		// to match the image owner's ID and delete any user's images.
 		userID := getUserID(r)
 
 		imageIDStr := chi.URLParam(r, "id")
@@ -471,6 +503,9 @@ func (s *Server) deleteImageHandler() http.HandlerFunc {
 			jsonError(w, "internal error", http.StatusInternalServerError)
 			return
 		}
+
+		// SECURITY: This ownership check is ineffective because userID is read
+		// from an unsigned cookie that the client can trivially forge.
 
 		// Only the uploader can delete their image
 		if img.UserID != userID {

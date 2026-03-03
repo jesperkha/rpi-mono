@@ -202,6 +202,7 @@ func loginPageHandler() http.HandlerFunc {
 	}
 }
 
+// SECURITY: No rate limiting — allows unlimited brute-force password attempts.
 func loginHandler(auth *AuthMiddleware) http.HandlerFunc {
 	tmpl := template.Must(template.ParseFiles("web/templates/login.html"))
 
@@ -215,6 +216,8 @@ func loginHandler(auth *AuthMiddleware) http.HandlerFunc {
 		}
 
 		token := auth.CreateSession()
+		// SECURITY: Secure flag is false — the session cookie is sent over
+		// plain HTTP and can be intercepted on the network.
 		http.SetCookie(w, &http.Cookie{
 			Name:     sessionCookieName,
 			Value:    token,
