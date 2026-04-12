@@ -430,8 +430,65 @@
                             </button>
                         </form>
                     </div>
+                    <div
+                        class="bg-surface rounded-xl px-4 py-3 flex items-center justify-between"
+                    >
+                        <div>
+                            <p class="text-sm font-medium">Rebuild Container</p>
+                            <p class="text-xs text-subtext">
+                                Rebuild and restart a running container
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onclick="document.getElementById('rebuild-modal').showModal()"
+                            class="px-4 py-2.5 bg-yellow/15 hover:bg-yellow/25 text-yellow text-xs font-medium rounded-lg transition-colors duration-200"
+                        >
+                            Run
+                        </button>
+                    </div>
                 </div>
             </div>
+
+            <!-- Rebuild Container Modal -->
+            <dialog
+                id="rebuild-modal"
+                class="bg-card border border-border rounded-2xl p-5 w-full max-w-sm backdrop:bg-black/60 open:flex open:flex-col gap-4 text-text fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 m-0"
+            >
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-semibold text-subtext uppercase tracking-wider">
+                        Rebuild Container
+                    </h3>
+                    <button
+                        type="button"
+                        onclick="document.getElementById('rebuild-modal').close()"
+                        class="text-subtext hover:text-text transition-colors"
+                    >
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="flex flex-col gap-2">
+                    {{range .Containers}}
+                    {{if eq .State "running"}}
+                    <form method="POST" action="/actions/rebuild">
+                        <input type="hidden" name="container" value="{{.Name}}" />
+                        <button
+                            type="submit"
+                            class="w-full bg-surface hover:bg-border rounded-xl px-4 py-3 flex items-center justify-between transition-colors duration-200"
+                        >
+                            <div class="text-left min-w-0">
+                                <p class="text-sm font-medium truncate">{{.Name}}</p>
+                                <p class="text-xs text-subtext truncate">{{.Image}}</p>
+                            </div>
+                            <span class="text-xs text-yellow font-medium ml-3 flex-shrink-0">Rebuild</span>
+                        </button>
+                    </form>
+                    {{end}}
+                    {{end}}
+                </div>
+            </dialog>
 
             {{if .Error}}
             <div

@@ -262,6 +262,13 @@ func actionHandler() http.HandlerFunc {
 			err = actions.PullLatest()
 		case "recipe-backup":
 			err = actions.CreateRecipeBackup()
+		case "rebuild":
+			name := r.FormValue("container")
+			if name == "" {
+				http.Error(w, "Container name required", http.StatusBadRequest)
+				return
+			}
+			err = actions.Rebuild(name)
 		default:
 			http.Error(w, "Unknown action", http.StatusNotFound)
 			return
