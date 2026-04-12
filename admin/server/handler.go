@@ -283,8 +283,6 @@ func actionHandler() http.HandlerFunc {
 		switch name {
 		case "pull-latest":
 			err = actions.PullLatest()
-		case "recipe-backup":
-			err = actions.CreateRecipeBackup()
 		case "rebuild":
 			name := r.FormValue("container")
 			if name == "" {

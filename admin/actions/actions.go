@@ -7,11 +7,6 @@ func PullLatest() error {
 	return err
 }
 
-func CreateRecipeBackup() error {
-	_, err := exec.Command("bash", "./scripts/backup.sh").Output()
-	return err
-}
-
 func Rebuild(name string) error {
 	composeFile := "../" + name + "/docker-compose.yaml"
 	_, err := exec.Command("docker", "compose", "-f", composeFile, "up", "--build", "-d").Output()
