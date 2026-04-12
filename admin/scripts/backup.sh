@@ -4,8 +4,8 @@
 set -e
 
 # Configuration
-SOURCE_DIR="data"
-BACKUP_DIR="backups"
+SOURCE_DIR="../recipes/data"
+BACKUP_DIR="../recipes/backups"
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 ARCHIVE_NAME="data_backup_${TIMESTAMP}.tar.gz"
 
