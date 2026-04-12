@@ -3,9 +3,8 @@ services:
         build: .
         container_name: admin
         ports:
-            - "8080:8080"
+            - "8083:8080"
         restart: unless-stopped
         env_file: .env
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
-
