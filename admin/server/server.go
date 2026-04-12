@@ -55,7 +55,6 @@ func New(config *config.Config) *Server {
 	mux.Get("/assets/*", assetsHandler())
 	mux.Get("/manifest.json", manifestHandler())
 	mux.Post("/containers/{id}/toggle", toggleContainerHandler(dockerClient))
-	mux.Post("/actions/{name}", actionHandler())
 	mux.Get("/logout", logoutHandler(auth))
 
 	cleanup := func() {

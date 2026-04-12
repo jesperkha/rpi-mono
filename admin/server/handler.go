@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/jesperkha/admin/actions"
 	"github.com/jesperkha/admin/docker"
 	"github.com/jesperkha/admin/health"
 )
@@ -273,31 +272,6 @@ func logoutHandler(auth *AuthMiddleware) http.HandlerFunc {
 		})
 
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
-	}
-}
-
-func actionHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		name := chi.URLParam(r, "name")
-		var err error
-		switch name {
-		case "pull-latest":
-			err = actions.PullLatest()
-		case "rebuild":
-			name := r.FormValue("container")
-			if name == "" {
-				http.Error(w, "Container name required", http.StatusBadRequest)
-				return
-			}
-			err = actions.Rebuild(name)
-		default:
-			http.Error(w, "Unknown action", http.StatusNotFound)
-			return
-		}
-		if err != nil {
-			log.Printf("Error running action %s: %v", name, err)
-		}
-		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 	}
 }
 
