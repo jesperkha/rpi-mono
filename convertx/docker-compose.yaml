@@ -1,0 +1,12 @@
+services:
+    convertx:
+        image: ghcr.io/c4illin/convertx
+        container_name: convertx
+        restart: unless-stopped
+        ports:
+            - "3000:3000"
+        environment:
+            - JWT_SECRET=a0524db5fffaf732cf9626c91d96fa2a1262a8435c6143e437c73812826de2c0
+            - HTTP_ALLOWED=true # uncomment this if accessing it over a non-https connection
+        volumes:
+            - ./data:/app/data

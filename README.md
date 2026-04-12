@@ -1,11 +1,18 @@
 # rpi-mono
 
-A monorepo of micro apps I run on my Raspberry Pi. All apps are completely self contained and can be downloaded and run separately.
+A monorepo of services I run on my Raspberry Pi. Each service is self-contained and managed via Docker Compose. The admin dashboard ties everything together.
 
-## Apps
+## Custom apps
 
-| App                          | Description                                                                                                  |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| [dagensbilde](./dagensbilde) | A mobile-first daily photo sharing app where users upload one photo per day and vote for a winner.           |
-| [admin](./admin)             | A mobile-friendly Raspberry Pi admin dashboard for system health monitoring and Docker container management. |
-| [recipes](./recipes)         | A simple self-hosted recipe app for storing, browsing, and creating recipes.                                 |
+| App                          | Description                                                                                        |
+| ---------------------------- | -------------------------------------------------------------------------------------------------- |
+| [admin](./admin)             | Dashboard for system health monitoring, Docker container management, and triggering deploy actions. |
+| [dagensbilde](./dagensbilde) | Mobile-first daily photo sharing app where users upload one photo per day and vote for a winner.   |
+| [recipes](./recipes)         | Self-hosted recipe app for storing, browsing, and creating recipes.                                |
+
+## Third-party services
+
+| Service                      | Description                              |
+| ---------------------------- | ---------------------------------------- |
+| [convertx](./convertx)       | File format converter.                   |
+| [flatnotes](./flatnotes)     | Flat-file, self-hosted note-taking app.  |

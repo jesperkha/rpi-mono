@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -19,8 +20,28 @@ type DashboardData struct {
 	Disk       diskData
 	RAM        ramData
 	Containers []docker.Container
+	Services   []string
 	UpdatedAt  string
 	Error      string
+}
+
+// discoverServices scans the parent directory for subdirectories that contain
+// a docker-compose.yaml file.
+func discoverServices() []string {
+	entries, err := os.ReadDir("../")
+	if err != nil {
+		return nil
+	}
+	var services []string
+	for _, e := range entries {
+		if !e.IsDir() {
+			continue
+		}
+		if _, err := os.Stat("../" + e.Name() + "/docker-compose.yaml"); err == nil {
+			services = append(services, e.Name())
+		}
+	}
+	return services
 }
 
 type cpuData struct {
@@ -132,6 +153,8 @@ func dashboardHandler(dockerClient *docker.Client) http.HandlerFunc {
 				Percent: fmt.Sprintf("%.1f", pct),
 			}
 		}
+
+		data.Services = discoverServices()
 
 		// Containers
 		containers, err := dockerClient.ListContainers(r.Context())

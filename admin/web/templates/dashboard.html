@@ -470,22 +470,17 @@
                     </button>
                 </div>
                 <div class="flex flex-col gap-2">
-                    {{range .Containers}}
-                    {{if eq .State "running"}}
+                    {{range .Services}}
                     <form method="POST" action="/actions/rebuild">
-                        <input type="hidden" name="container" value="{{.Name}}" />
+                        <input type="hidden" name="container" value="{{.}}" />
                         <button
                             type="submit"
                             class="w-full bg-surface hover:bg-border rounded-xl px-4 py-3 flex items-center justify-between transition-colors duration-200"
                         >
-                            <div class="text-left min-w-0">
-                                <p class="text-sm font-medium truncate">{{.Name}}</p>
-                                <p class="text-xs text-subtext truncate">{{.Image}}</p>
-                            </div>
+                            <p class="text-sm font-medium">{{.}}</p>
                             <span class="text-xs text-yellow font-medium ml-3 flex-shrink-0">Rebuild</span>
                         </button>
                     </form>
-                    {{end}}
                     {{end}}
                 </div>
             </dialog>

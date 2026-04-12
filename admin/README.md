@@ -13,6 +13,8 @@ A mobile-friendly dashboard for managing a Raspberry Pi. Combines system health 
 - System health monitoring (uptime, CPU load, disk usage, RAM)
 - View all Docker containers and their status
 - Start/stop containers with one tap
+- Rebuild and redeploy individual services via `docker compose up --build`
+- Run admin actions (git pull, recipe backup)
 - Password protected (SHA256) with 1-week sessions
 - Dark themed, mobile-first UI
 

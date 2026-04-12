@@ -13,6 +13,7 @@ func CreateRecipeBackup() error {
 }
 
 func Rebuild(name string) error {
-	_, err := exec.Command("docker", "compose", "up", "--build", "-d", name).Output()
+	composeFile := "../" + name + "/docker-compose.yaml"
+	_, err := exec.Command("docker", "compose", "-f", composeFile, "up", "--build", "-d").Output()
 	return err
 }
